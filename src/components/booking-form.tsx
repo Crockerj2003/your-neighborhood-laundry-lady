@@ -8,6 +8,43 @@ import {
 
 type Status = "idle" | "submitting" | "success" | "error";
 
+const PICKUP_TIME_OPTIONS = [
+  { value: "08:00", label: "8:00 AM" },
+  { value: "08:30", label: "8:30 AM" },
+  { value: "09:00", label: "9:00 AM" },
+  { value: "09:30", label: "9:30 AM" },
+  { value: "10:00", label: "10:00 AM" },
+  { value: "10:30", label: "10:30 AM" },
+  { value: "11:00", label: "11:00 AM" },
+  { value: "11:30", label: "11:30 AM" },
+  { value: "12:00", label: "12:00 PM" },
+  { value: "12:30", label: "12:30 PM" },
+  { value: "13:00", label: "1:00 PM" },
+  { value: "13:30", label: "1:30 PM" },
+  { value: "14:00", label: "2:00 PM" },
+  { value: "14:30", label: "2:30 PM" },
+  { value: "15:00", label: "3:00 PM" },
+  { value: "15:30", label: "3:30 PM" },
+  { value: "16:00", label: "4:00 PM" },
+  { value: "16:30", label: "4:30 PM" },
+  { value: "17:00", label: "5:00 PM" },
+  { value: "17:30", label: "5:30 PM" },
+  { value: "18:00", label: "6:00 PM" },
+] as const;
+
+function formatDateForInput(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function buildPickupDate(dateInput: string, timeInput: string) {
+  const [year, month, day] = dateInput.split("-").map(Number);
+  const [hours, minutes] = timeInput.split(":").map(Number);
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+}
+
 export function BookingForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
@@ -19,12 +56,26 @@ export function BookingForm() {
     setError("");
 
     const formData = new FormData(form);
-    const pickupTimeInput = String(formData.get("pickupTime") ?? "");
-    const pickupDate = new Date(pickupTimeInput);
+    const pickupDateInput = String(formData.get("pickupDate") ?? "");
+    const pickupTimeSlotInput = String(formData.get("pickupTimeSlot") ?? "");
+
+    if (!pickupDateInput || !pickupTimeSlotInput) {
+      setStatus("error");
+      setError("Select both a pickup date and a pickup time.");
+      return;
+    }
+
+    const pickupDate = buildPickupDate(pickupDateInput, pickupTimeSlotInput);
 
     if (Number.isNaN(pickupDate.getTime())) {
       setStatus("error");
       setError("Enter a valid pickup time.");
+      return;
+    }
+
+    if (pickupDate <= new Date()) {
+      setStatus("error");
+      setError("Pickup time must be in the future.");
       return;
     }
 
@@ -111,15 +162,35 @@ export function BookingForm() {
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-[#084771]">Pickup Time</span>
+        <span className="mb-1 block text-sm font-medium text-[#084771]">Pickup Date</span>
         <input
           required
-          type="datetime-local"
-          name="pickupTime"
+          type="date"
+          name="pickupDate"
+          min={formatDateForInput(new Date())}
           className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]"
         />
+      </label>
+
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-[#084771]">Pickup Time</span>
+        <select
+          required
+          name="pickupTimeSlot"
+          defaultValue=""
+          className="w-full rounded-lg border border-[#3d80aa]/50 bg-white px-3 py-2 text-black outline-none focus:border-[#084771]"
+        >
+          <option value="" disabled>
+            Select a pickup time
+          </option>
+          {PICKUP_TIME_OPTIONS.map((timeOption) => (
+            <option key={timeOption.value} value={timeOption.value}>
+              {timeOption.label}
+            </option>
+          ))}
+        </select>
         <span className="mt-1 block text-xs text-[#3d80aa]">
-          Pickup hours are 8:00 AM to 6:00 PM.
+          Choose a date first, then pick a time between 8:00 AM and 6:00 PM.
         </span>
       </label>
 
