@@ -20,7 +20,7 @@ export const bookingSchema = z.object({
     }),
   phoneNumber: z.string().trim().min(7, "Phone number is required."),
   email: z.string().trim().email("Enter a valid email."),
-  notes: z.string().trim().min(1, "Notes are required.").max(1500),
+  notes: z.string().trim().max(1500).optional(),
   status: z.enum(BOOKING_STATUS_VALUES).optional(),
 });
 

@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         pickupTime: new Date(parsed.data.pickupTime),
         phoneNumber: parsed.data.phoneNumber,
         email: parsed.data.email,
-        notes: parsed.data.notes,
+        notes: parsed.data.notes || null,
         status: getSafeBookingStatus(parsed.data.status ?? "Picking up"),
       },
     });

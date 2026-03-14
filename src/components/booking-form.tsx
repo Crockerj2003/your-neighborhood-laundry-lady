@@ -207,7 +207,6 @@ export function BookingForm() {
       <label className="block">
         <span className="mb-1 block text-sm font-medium text-[#084771]">Additional Notes (Allergies, Preferences, etc.)</span>
         <textarea
-          required
           name="notes"
           rows={4}
           className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]"
