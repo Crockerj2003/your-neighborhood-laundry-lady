@@ -190,7 +190,7 @@ export function BookingForm() {
           ))}
         </select>
         <span className="mt-1 block text-xs text-[#3d80aa]">
-          Choose a date first, then pick a time between 8:00 AM and 6:00 PM.
+          Choose a date first, then pick a time between 8:00 AM and 6:00 PM Atlantic time.
         </span>
       </label>
 

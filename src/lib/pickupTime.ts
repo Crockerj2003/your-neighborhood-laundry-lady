@@ -2,9 +2,22 @@ export const PICKUP_START_HOUR = 8;
 export const PICKUP_START_MINUTE = 0;
 export const PICKUP_CUTOFF_HOUR = 18;
 export const PICKUP_CUTOFF_MINUTE = 0;
+export const PICKUP_TIME_ZONE = "America/Halifax";
 
 function getMinutesFromDate(pickupDate: Date) {
-  return pickupDate.getHours() * 60 + pickupDate.getMinutes();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: PICKUP_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(pickupDate);
+
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0");
+  const minute = Number(
+    parts.find((part) => part.type === "minute")?.value ?? "0",
+  );
+
+  return hour * 60 + minute;
 }
 
 function getPickupStartMinutes() {
