@@ -41,6 +41,16 @@ export async function POST(request: Request) {
         );
       }
 
+      if (error.code === "P1011") {
+        return NextResponse.json(
+          {
+            error:
+              "Database TLS handshake failed. Use the Supabase pooler connection string and include sslmode=require&uselibpqcompat=true.",
+          },
+          { status: 500 },
+        );
+      }
+
       if (error.code === "P2021") {
         return NextResponse.json(
           {

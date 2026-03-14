@@ -39,10 +39,11 @@ export function BookingForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setStatus("submitting");
     setError("");
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const pickupTimeInput = String(formData.get("pickupTime") ?? "");
     const pickupDate = new Date(pickupTimeInput);
 
@@ -88,7 +89,7 @@ export function BookingForm() {
         throw new Error(data.error ?? "Something went wrong.");
       }
 
-      event.currentTarget.reset();
+      form.reset();
       setStatus("success");
     } catch (submitError) {
       setStatus("error");
