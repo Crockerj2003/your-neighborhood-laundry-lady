@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { bookingSchema } from "@/lib/bookingSchema";
 import { prisma } from "@/lib/prisma";
 
@@ -28,6 +29,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ bookingId: booking.id }, { status: 201 });
   } catch (error) {
     console.error("Failed to create booking:", error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P1001") {
+        return NextResponse.json(
+          {
+            error:
+              "Could not connect to the database server. Check DATABASE_URL/POSTGRES_PRISMA_URL and sslmode=require.",
+          },
+          { status: 500 },
+        );
+      }
+
+      if (error.code === "P2021") {
+        return NextResponse.json(
+          {
+            error:
+              "The bookings table was not found in the database. Create the Booking table and try again.",
+          },
+          { status: 500 },
+        );
+      }
+    }
+
     return NextResponse.json(
       { error: "Could not save booking. Please try again." },
       { status: 500 },
