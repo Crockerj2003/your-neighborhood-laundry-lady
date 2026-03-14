@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { ADMIN_COOKIE_NAME, isAdminSession } from "@/lib/adminAuth";
 import { BOOKING_STATUS_VALUES } from "@/lib/bookingStatus";
+import { sendBookingStatusEmail } from "@/lib/email";
 
 const updateBookingSchema = z.object({
   status: z.enum(BOOKING_STATUS_VALUES),
@@ -42,12 +43,33 @@ export async function PATCH(
       );
     }
 
-    await prisma.booking.update({
+    const existingBooking = await prisma.booking.findUnique({
+      where: { id },
+    });
+
+    if (!existingBooking) {
+      return NextResponse.json({ error: "Booking not found." }, { status: 404 });
+    }
+
+    const updatedBooking = await prisma.booking.update({
       where: { id },
       data: {
         status: parsed.data.status,
       },
     });
+
+    if (existingBooking.status !== updatedBooking.status) {
+      try {
+        await sendBookingStatusEmail({
+          customerName: updatedBooking.customerName,
+          customerEmail: updatedBooking.email,
+          pickupTime: updatedBooking.pickupTime,
+          newStatus: updatedBooking.status,
+        });
+      } catch (emailError) {
+        console.error("Failed to send status update email:", emailError);
+      }
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
