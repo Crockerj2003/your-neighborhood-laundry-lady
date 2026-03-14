@@ -63,7 +63,6 @@ export async function PATCH(
         await sendBookingStatusEmail({
           customerName: updatedBooking.customerName,
           customerEmail: updatedBooking.email,
-          pickupTime: updatedBooking.pickupTime,
           newStatus: updatedBooking.status,
         });
       } catch (emailError) {

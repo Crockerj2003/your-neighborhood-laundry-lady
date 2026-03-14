@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { bookingSchema } from "@/lib/bookingSchema";
 import { getSafeBookingStatus } from "@/lib/bookingStatus";
+import { sendBookingPlacedEmails } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -27,6 +28,19 @@ export async function POST(request: Request) {
         status: getSafeBookingStatus(parsed.data.status ?? "Picking up"),
       },
     });
+
+    try {
+      await sendBookingPlacedEmails({
+        customerName: booking.customerName,
+        customerEmail: booking.email,
+        address: booking.address,
+        pickupTime: booking.pickupTime,
+        phoneNumber: booking.phoneNumber,
+        notes: booking.notes,
+      });
+    } catch (emailError) {
+      console.error("Failed to send booking placed emails:", emailError);
+    }
 
     return NextResponse.json({ bookingId: booking.id }, { status: 201 });
   } catch (error) {
