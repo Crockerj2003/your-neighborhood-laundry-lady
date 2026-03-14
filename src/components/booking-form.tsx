@@ -1,15 +1,35 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import {
+  PICKUP_START_HOUR,
+  PICKUP_START_MINUTE,
+  isPickupTimeAfterCutoff,
+  isPickupTimeBeforeStart,
+} from "@/lib/pickupTime";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
+function formatForDateTimeInput(date: Date) {
+  const timezoneOffsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+}
+
 function formatDefaultPickup() {
   const now = new Date();
-  now.setMinutes(now.getMinutes() + 90);
-  now.setSeconds(0);
-  now.setMilliseconds(0);
-  return now.toISOString().slice(0, 16);
+  const proposedPickup = new Date(now);
+  proposedPickup.setMinutes(proposedPickup.getMinutes() + 90);
+  proposedPickup.setSeconds(0);
+  proposedPickup.setMilliseconds(0);
+
+  if (isPickupTimeBeforeStart(proposedPickup)) {
+    proposedPickup.setHours(PICKUP_START_HOUR, PICKUP_START_MINUTE, 0, 0);
+  } else if (isPickupTimeAfterCutoff(proposedPickup)) {
+    proposedPickup.setDate(proposedPickup.getDate() + 1);
+    proposedPickup.setHours(PICKUP_START_HOUR, PICKUP_START_MINUTE, 0, 0);
+  }
+
+  return formatForDateTimeInput(proposedPickup);
 }
 
 export function BookingForm() {
@@ -24,10 +44,31 @@ export function BookingForm() {
 
     const formData = new FormData(event.currentTarget);
     const pickupTimeInput = String(formData.get("pickupTime") ?? "");
-    const pickupISO = new Date(pickupTimeInput).toISOString();
+    const pickupDate = new Date(pickupTimeInput);
+
+    if (Number.isNaN(pickupDate.getTime())) {
+      setStatus("error");
+      setError("Enter a valid pickup time.");
+      return;
+    }
+
+    if (isPickupTimeBeforeStart(pickupDate)) {
+      setStatus("error");
+      setError("Pickup time must be on or after 8:00 AM.");
+      return;
+    }
+
+    if (isPickupTimeAfterCutoff(pickupDate)) {
+      setStatus("error");
+      setError("Pickup time must be on or before 6:00 PM.");
+      return;
+    }
+
+    const pickupISO = pickupDate.toISOString();
 
     const payload = {
       customerName: String(formData.get("customerName") ?? ""),
+      town: String(formData.get("town") ?? ""),
       address: String(formData.get("address") ?? ""),
       pickupTime: pickupISO,
       phoneNumber: String(formData.get("phoneNumber") ?? ""),
@@ -61,28 +102,48 @@ export function BookingForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-[#8ad8dd] bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-[#084771]">Book your pickup</h2>
+      <h2 className="text-xl font-semibold text-[#084771]">Book Your Pickup Time</h2>
       <p className="text-sm text-[#3d80aa]">
-        Fill this out and we will confirm your pickup details by phone or email.
+        Fill this form out and we will confirm your pickup details by phone or email.
       </p>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-[#084771]">Full name</span>
+        <span className="mb-1 block text-sm font-medium text-[#084771]">Full Name</span>
         <input required name="customerName" className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]" />
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-[#084771]">Address</span>
+        <span className="mb-1 block text-sm font-medium text-[#084771]">Town</span>
+        <select
+          required
+          name="town"
+          defaultValue=""
+          className="w-full rounded-lg border border-[#3d80aa]/50 bg-white px-3 py-2 text-black outline-none focus:border-[#084771]"
+        >
+          <option value="" disabled>
+            Select your town
+          </option>
+          <option value="Wolfville">Wolfville</option>
+          <option value="New Minas">New Minas</option>
+          <option value="Kentville">Kentville</option>
+        </select>
+      </label>
+
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-[#084771]">Street Address</span>
         <textarea required name="address" rows={3} className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]" />
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-[#084771]">Pickup time</span>
+        <span className="mb-1 block text-sm font-medium text-[#084771]">Pickup Time</span>
         <input required type="datetime-local" name="pickupTime" defaultValue={defaultPickup} className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]" />
+        <span className="mt-1 block text-xs text-[#3d80aa]">
+          Pickup hours are 8:00 AM to 6:00 PM.
+        </span>
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-[#084771]">Phone number</span>
+        <span className="mb-1 block text-sm font-medium text-[#084771]">Phone Number</span>
         <input required type="tel" name="phoneNumber" className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]" />
       </label>
 
@@ -92,7 +153,7 @@ export function BookingForm() {
       </label>
 
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-[#084771]">Additional notes (allergies, preferences, etc.)</span>
+        <span className="mb-1 block text-sm font-medium text-[#084771]">Additional Notes (Allergies, Preferences, etc.)</span>
         <textarea name="notes" rows={4} className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]" />
       </label>
 
@@ -101,7 +162,7 @@ export function BookingForm() {
         disabled={status === "submitting"}
         className="w-full rounded-lg bg-[#ea5d23] px-4 py-2 font-semibold text-white transition hover:bg-[#d6531f] disabled:cursor-not-allowed disabled:bg-[#f2ba1e]"
       >
-        {status === "submitting" ? "Submitting..." : "Request pickup"}
+        {status === "submitting" ? "Submitting..." : "Request Pickup"}
       </button>
 
       {status === "success" && (
