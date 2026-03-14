@@ -13,7 +13,7 @@ function getTimeZoneParts(date: Date) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).formatToParts(pickupDate);
+  }).formatToParts(date);
 
   const year = Number(parts.find((part) => part.type === "year")?.value ?? "0");
   const month = Number(
