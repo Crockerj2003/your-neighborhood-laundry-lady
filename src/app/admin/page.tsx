@@ -21,9 +21,17 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  const bookings = await prisma.booking.findMany({
-    orderBy: [{ pickupTime: "asc" }, { createdAt: "desc" }],
-  });
+  let bookings: Awaited<ReturnType<typeof prisma.booking.findMany>> = [];
+  let loadError = "";
+
+  try {
+    bookings = await prisma.booking.findMany({
+      orderBy: [{ pickupTime: "asc" }, { createdAt: "desc" }],
+    });
+  } catch (error) {
+    console.error("Failed to load admin bookings:", error);
+    loadError = "Could not load bookings right now. Please check database settings and try again.";
+  }
 
   return (
     <main className="min-h-screen bg-[#e7f3f4] px-4 py-8">
@@ -39,6 +47,11 @@ export default async function AdminPage() {
         </div>
 
         <section className="overflow-hidden rounded-2xl border border-[#8ad8dd] bg-white shadow-sm">
+          {loadError && (
+            <div className="border-b border-[#e7f3f4] bg-[#ea5d23]/10 px-4 py-3 text-sm text-[#ea5d23]">
+              {loadError}
+            </div>
+          )}
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-[#084771] text-xs uppercase tracking-wide text-white">
