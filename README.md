@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Your neighborhood laundry lady
 
-## Getting Started
+Website for a pickup and delivery laundry service with online booking and an admin portal.
 
-First, run the development server:
+### Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Customer booking form with:
+  - Name
+  - Address
+  - Pickup time
+  - Phone number
+  - Email
+  - Additional notes (allergies, preferences, etc.)
+- Admin login portal to view bookings
+- Prisma + PostgreSQL storage (Vercel friendly)
+- Branded landing page with slogan: `clean clothes, less stress`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Local setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Install dependencies:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. Copy environment variables and fill in your values:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   copy .env.example .env
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Push schema to your database:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   npm run db:push
+   ```
 
-## Deploy on Vercel
+4. Start dev server:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000).
+
+### Required environment variables
+
+- `DATABASE_URL`: PostgreSQL connection string
+- `ADMIN_PASSWORD`: Password for `/admin/login`
+
+### Deploying to Vercel
+
+1. Create a Postgres database in Vercel Storage (or any external PostgreSQL provider).
+2. Add `DATABASE_URL` and `ADMIN_PASSWORD` to Vercel project environment variables.
+3. Deploy with Vercel.
+4. Run `npm run db:push` against your production database before taking bookings.
