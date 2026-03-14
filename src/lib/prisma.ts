@@ -5,9 +5,14 @@ const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString =
+  process.env.DATABASE_URL ??
+  process.env.POSTGRES_PRISMA_URL ??
+  process.env.POSTGRES_URL;
 if (!connectionString) {
-  throw new Error("DATABASE_URL is not set.");
+  throw new Error(
+    "No database connection string found. Set DATABASE_URL, POSTGRES_PRISMA_URL, or POSTGRES_URL.",
+  );
 }
 
 const adapter = new PrismaPg({ connectionString });
