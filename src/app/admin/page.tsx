@@ -5,11 +5,13 @@ import { ADMIN_COOKIE_NAME, isAdminSession } from "@/lib/adminAuth";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { AdminBookingActions } from "@/components/admin-booking-actions";
 import { getSafeBookingStatus } from "@/lib/bookingStatus";
+import { PICKUP_TIME_ZONE } from "@/lib/pickupTime";
 
 export const dynamic = "force-dynamic";
 
 function formatPickup(date: Date) {
   return new Intl.DateTimeFormat("en-CA", {
+    timeZone: PICKUP_TIME_ZONE,
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);

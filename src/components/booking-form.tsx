@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import {
+  buildPickupDateInTimeZone,
   isPickupTimeAfterCutoff,
   isPickupTimeBeforeStart,
 } from "@/lib/pickupTime";
@@ -39,12 +40,6 @@ function formatDateForInput(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function buildPickupDate(dateInput: string, timeInput: string) {
-  const [year, month, day] = dateInput.split("-").map(Number);
-  const [hours, minutes] = timeInput.split(":").map(Number);
-  return new Date(year, month - 1, day, hours, minutes, 0, 0);
-}
-
 export function BookingForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
@@ -65,7 +60,10 @@ export function BookingForm() {
       return;
     }
 
-    const pickupDate = buildPickupDate(pickupDateInput, pickupTimeSlotInput);
+    const pickupDate = buildPickupDateInTimeZone(
+      pickupDateInput,
+      pickupTimeSlotInput,
+    );
 
     if (Number.isNaN(pickupDate.getTime())) {
       setStatus("error");
