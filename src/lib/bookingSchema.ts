@@ -3,6 +3,7 @@ import {
   isPickupTimeAfterCutoff,
   isPickupTimeBeforeStart,
 } from "@/lib/pickupTime";
+import { BOOKING_STATUS_VALUES } from "@/lib/bookingStatus";
 
 export const bookingSchema = z.object({
   customerName: z.string().trim().min(2, "Name is required."),
@@ -19,7 +20,8 @@ export const bookingSchema = z.object({
     }),
   phoneNumber: z.string().trim().min(7, "Phone number is required."),
   email: z.string().trim().email("Enter a valid email."),
-  notes: z.string().trim().max(1500).optional(),
+  notes: z.string().trim().min(1, "Notes are required.").max(1500),
+  status: z.enum(BOOKING_STATUS_VALUES).optional(),
 });
 
 export type BookingInput = z.infer<typeof bookingSchema>;

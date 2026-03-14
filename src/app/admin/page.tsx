@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ADMIN_COOKIE_NAME, isAdminSession } from "@/lib/adminAuth";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
+import { AdminBookingActions } from "@/components/admin-booking-actions";
+import { getSafeBookingStatus } from "@/lib/bookingStatus";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,21 @@ function formatPickup(date: Date) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
+}
+
+function getStatusBadgeStyles(status: string) {
+  switch (status) {
+    case "Picking up":
+      return "bg-[#8ad8dd]/30 text-[#084771] border border-[#8ad8dd]";
+    case "Washing":
+      return "bg-[#f2ba1e]/20 text-[#9a5f00] border border-[#f2ba1e]/50";
+    case "Out for delivery":
+      return "bg-[#3d80aa]/20 text-[#084771] border border-[#3d80aa]/40";
+    case "Delivered":
+      return "bg-[#34a853]/15 text-[#1f7a3d] border border-[#34a853]/40";
+    default:
+      return "bg-[#e7f3f4] text-[#084771] border border-[#8ad8dd]/40";
+  }
 }
 
 export default async function AdminPage() {
@@ -61,33 +78,51 @@ export default async function AdminPage() {
                   <th className="px-4 py-3">Phone</th>
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">Address</th>
+                  <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Notes</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bookings.map((booking) => (
-                  <tr key={booking.id} className="border-t border-[#e7f3f4] align-top">
-                    <td className="px-4 py-3 text-[#084771]">
-                      {formatPickup(booking.pickupTime)}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-black">
-                      {booking.customerName}
-                    </td>
-                    <td className="px-4 py-3 text-black">{booking.phoneNumber}</td>
-                    <td className="px-4 py-3 text-black">
-                      <a href={`mailto:${booking.email}`} className="text-[#3d80aa] hover:text-[#ea5d23] hover:underline">
-                        {booking.email}
-                      </a>
-                    </td>
-                    <td className="px-4 py-3 text-black">{booking.address}</td>
-                    <td className="px-4 py-3 text-black">
-                      {booking.notes || <span className="text-[#3d80aa]">None</span>}
-                    </td>
-                  </tr>
-                ))}
+                {bookings.map((booking) => {
+                  const safeStatus = getSafeBookingStatus(booking.status);
+                  return (
+                    <tr key={booking.id} className="border-t border-[#e7f3f4] align-top">
+                      <td className="px-4 py-3 text-[#084771]">
+                        {formatPickup(booking.pickupTime)}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-black">
+                        {booking.customerName}
+                      </td>
+                      <td className="px-4 py-3 text-black">{booking.phoneNumber}</td>
+                      <td className="px-4 py-3 text-black">
+                        <a href={`mailto:${booking.email}`} className="text-[#3d80aa] hover:text-[#ea5d23] hover:underline">
+                          {booking.email}
+                        </a>
+                      </td>
+                      <td className="px-4 py-3 text-black">{booking.address}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusBadgeStyles(safeStatus)}`}
+                        >
+                          {safeStatus}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-black">
+                        {booking.notes || <span className="text-[#3d80aa]">None</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <AdminBookingActions
+                          bookingId={booking.id}
+                          currentStatus={safeStatus}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
                 {bookings.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-[#3d80aa]">
+                    <td colSpan={8} className="px-4 py-10 text-center text-[#3d80aa]">
                       No bookings yet.
                     </td>
                   </tr>

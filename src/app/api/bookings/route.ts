@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { bookingSchema } from "@/lib/bookingSchema";
+import { getSafeBookingStatus } from "@/lib/bookingStatus";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -22,7 +23,8 @@ export async function POST(request: Request) {
         pickupTime: new Date(parsed.data.pickupTime),
         phoneNumber: parsed.data.phoneNumber,
         email: parsed.data.email,
-        notes: parsed.data.notes || null,
+        notes: parsed.data.notes,
+        status: getSafeBookingStatus(parsed.data.status ?? "Picking up"),
       },
     });
 

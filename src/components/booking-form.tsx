@@ -1,41 +1,16 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import {
-  PICKUP_START_HOUR,
-  PICKUP_START_MINUTE,
   isPickupTimeAfterCutoff,
   isPickupTimeBeforeStart,
 } from "@/lib/pickupTime";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
-function formatForDateTimeInput(date: Date) {
-  const timezoneOffsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
-}
-
-function formatDefaultPickup() {
-  const now = new Date();
-  const proposedPickup = new Date(now);
-  proposedPickup.setMinutes(proposedPickup.getMinutes() + 90);
-  proposedPickup.setSeconds(0);
-  proposedPickup.setMilliseconds(0);
-
-  if (isPickupTimeBeforeStart(proposedPickup)) {
-    proposedPickup.setHours(PICKUP_START_HOUR, PICKUP_START_MINUTE, 0, 0);
-  } else if (isPickupTimeAfterCutoff(proposedPickup)) {
-    proposedPickup.setDate(proposedPickup.getDate() + 1);
-    proposedPickup.setHours(PICKUP_START_HOUR, PICKUP_START_MINUTE, 0, 0);
-  }
-
-  return formatForDateTimeInput(proposedPickup);
-}
-
 export function BookingForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
-  const defaultPickup = useMemo(() => formatDefaultPickup(), []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -137,7 +112,12 @@ export function BookingForm() {
 
       <label className="block">
         <span className="mb-1 block text-sm font-medium text-[#084771]">Pickup Time</span>
-        <input required type="datetime-local" name="pickupTime" defaultValue={defaultPickup} className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]" />
+        <input
+          required
+          type="datetime-local"
+          name="pickupTime"
+          className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]"
+        />
         <span className="mt-1 block text-xs text-[#3d80aa]">
           Pickup hours are 8:00 AM to 6:00 PM.
         </span>
@@ -155,7 +135,12 @@ export function BookingForm() {
 
       <label className="block">
         <span className="mb-1 block text-sm font-medium text-[#084771]">Additional Notes (Allergies, Preferences, etc.)</span>
-        <textarea name="notes" rows={4} className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]" />
+        <textarea
+          required
+          name="notes"
+          rows={4}
+          className="w-full rounded-lg border border-[#3d80aa]/50 px-3 py-2 text-black outline-none focus:border-[#084771]"
+        />
       </label>
 
       <button
