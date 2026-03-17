@@ -151,6 +151,9 @@ export function BookingForm() {
           <option value="Wolfville">Wolfville</option>
           <option value="New Minas">New Minas</option>
           <option value="Kentville">Kentville</option>
+          <option value="Coldbrook">Coldbrook</option>
+          <option value="Berwick">Berwick</option>
+          <option value="Canning">Canning</option>
         </select>
       </label>
 
