@@ -7,7 +7,7 @@ import { BOOKING_STATUS_VALUES } from "@/lib/bookingStatus";
 
 export const bookingSchema = z.object({
   customerName: z.string().trim().min(2, "Name is required."),
-  town: z.enum(["Wolfville", "New Minas", "Kentville"]),
+  town: z.enum(["Wolfville", "New Minas", "Kentville", "Coldhrook", "Berwick", "Canning"]),
   address: z.string().trim().min(5, "Street address is required."),
   pickupTime: z
     .string()
